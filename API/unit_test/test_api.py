@@ -4,6 +4,7 @@ import requests
 
 URL_TEST = "http://localhost:5000/api/students"
 
+
 # class TestAPI(unittest.TestCase):
 #     def setUp(self):
 #         # Create a sample student for testing purposes
@@ -172,8 +173,10 @@ class TestAPI(unittest.TestCase):
         response = requests.get(f'{URL_TEST}/{created_id}')
         self.assertEqual(response.status_code, 404)
 
+
 if __name__ == "__main__":
-    test_order = ["setUp", "test_get_students", "test_create_student", "test_get_student_by_id", "test_update_student", "test_delete_student", "tearDown"] 
+    test_order = ["setUp", "test_get_students", "test_create_student", "test_get_student_by_id", "test_update_student",
+                  "test_delete_student", "tearDown"]
     test_loader = unittest.TestLoader()
     test_loader.sortTestMethodsUsing = lambda x, y: test_order.index(x) - test_order.index(y)
     unittest.main(testLoader=test_loader)
