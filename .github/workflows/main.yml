@@ -1,0 +1,55 @@
+name: CI workflow
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+     - main
+
+permissions:
+  contents: read
+
+jobs:
+  unit_testing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10.6"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r API/requirements.txt
+      
+      - name: Install docker
+        run: |
+          sudo apt-get update
+          sudo apt install apt-transport-https ca-certificates curl software-properties-common
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
+          sudo docker --version
+          sudo apt install docker-ce
+      - name: Pull image from DockerHub
+        run: |
+          sudo docker pull huyuet/mongo:5.0
+          sudo docker pull huyuet/backend-image
+      - name: Run container
+        run: |
+          sudo docker network create mongodb_network
+          sudo docker run -p 27017:27017 -d --name mongo_db --network mongodb_network -v /mongodb:/docker-entrypoint-initdb.d --restart unless-stopped huyuet/mongo:5.0
+          sudo docker run -p 5000:5000 -d --name backend --network mongodb_network huyuet/backend-image
+      - name: Wait for backend to be available
+        run: |
+          echo "Waiting for backend to start..."
+          until curl -s http://127.0.0.1:5000/api/students; do
+            echo "Waiting for backend to be available..."
+          sleep 5
+          done
+      - name: Run unittest
+        run:  python API/unit_test/test_api.py
