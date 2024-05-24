@@ -42,7 +42,6 @@ def get_students():
 def create_student():
     try:
         data = request.json
-        print(data)
         result = students_collection.insert_one(data)
         return jsonify({'message': 'Student created successfully', 'id': str(result.inserted_id)}), 200
     except Exception as e:
